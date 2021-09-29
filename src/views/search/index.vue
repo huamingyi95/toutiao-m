@@ -27,7 +27,7 @@
      :search-text="searchText"
      @search="onSearch"
      />
-    <!-- /联想建议 -->
+    <!-- 联想建议 -->
 
     <!-- 搜索历史记录 -->
     <search-history

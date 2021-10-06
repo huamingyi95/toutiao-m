@@ -62,7 +62,7 @@ export default {
         })
         // 2. 把数据添加到 list 数组中(追加！！！)
         const { results } = data.data
-        console.log(data)
+        // console.log(data)
         this.list.push(...results)
         this.loading = false
         if (results.length) {

@@ -1,6 +1,8 @@
 <template>
-  <van-cell class="article-item">
-    <!-- 标题插槽 -->
+  <van-cell class="article-item"
+  :to="{ name: 'article', params: { articleId: article.art_id} }"
+  >
+     <!-- 标题插槽 -->
     <template #title>
       <div class="title">{{ article.title }}</div>
     </template>

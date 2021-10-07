@@ -2,10 +2,18 @@
   <van-list
     v-model="loading"
     :finished="finished"
-    finished-text="没有更多了"
+   finished-text="已显示全部评论"
+    :error="error"
+    error-text="加载失败，请点击重试"
+    :immediate-check="false"
     @load="onLoad"
   >
-    <comment-item v-for="(item, index) in list" :key="index" :comment="item" />
+    <comment-item
+     v-for="(item, index) in list"
+      :key="index"
+       :comment="item"
+      @reply-click="$emit('reply-click', $event)"
+       />
   </van-list>
 </template>
 <script>
@@ -18,11 +26,25 @@ export default {
     source: {
       type: [Number, String, Object],
       required: true
+    },
+    // 定义自定义属性list，去接收外面的commentList 变量
+    list: {
+      type: Array,
+      default: () => []
+    },
+    // 【新增这个type】判断是文章还是评论
+    type: {
+      type: String,
+      // 自定义 Prop 数据验证
+      validator (value) {
+        return ['a', 'c'].includes(value)
+      },
+      default: 'a'
     }
   },
   data () {
     return {
-      list: [], // 评论列表
+      // list: [], // 评论列表
       loading: false, // 上拉加载更多的 loading
       finished: false, // 是否加载结束
       offset: null, // 获取下一页数据的标记
@@ -31,6 +53,7 @@ export default {
     }
   },
   created () {
+    this.loading = true
     this.onLoad()
   },
   methods: {
@@ -38,7 +61,7 @@ export default {
       try {
         // 1. 请求获取数据
         const { data } = await getComments({
-          type: 'a', //  评论类型，a-对文章(article)的评论，c-对评论(comment)的回复
+          type: this.type, //  评论类型，a-对文章(article)的评论，c-对评论(comment)的回复
           source: this.source.toString(), // 源id，文章id或评论id,【可能有大数字，所以执行一下toString 方法】
           offset: this.offset, // 评论数据的偏移量，值为评论id，表示从此id的数据向后取，不传表示从第一页开始读取数据
           limit: this.limit // 获取的评论数据个数，不传表示采用后端服务设定的默认每页数据量

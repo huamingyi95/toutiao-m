@@ -11,25 +11,40 @@
       <div class="user-name">{{ comment.aut_name }}</div>
       <van-button
         class="like-btn"
-        icon="good-job-o"
-      >{{ comment.like_count || '赞' }}</van-button>
+        :class="{ liked: comment.is_liking }"
+        :icon="comment.is_liking ? 'good-job' : 'good-job-o'"
+        :loading="commentLoading"
+        @click="onCommentLike"
+        >{{ comment.like_count || "赞" }}</van-button
+      >
     </div>
 
     <div slot="label">
       <p class="comment-content">{{ comment.content }}</p>
       <div class="bottom-info">
-        <span class="comment-pubdate">{{ comment.pubdate | relativeTime }}</span>
+        <span class="comment-pubdate">{{
+          comment.pubdate | relativeTime
+        }}</span>
         <van-button
-          class="reply-btn"
-          round
-        >回复 {{ comment.reply_count }}</van-button>
+        class="reply-btn"
+         round
+          @click="$emit('reply-click', comment)"
+          >
+          回复 {{ comment.reply_count }}</van-button
+        >
       </div>
     </div>
   </van-cell>
 </template>
 <script>
+import { addCommentLike, deleteCommentLike } from '@/api/comment'
 export default {
   name: 'CommentItem',
+  data () {
+    return {
+      commentLoading: false // 是否点赞中
+    }
+  },
   props: {
     // 每行的评论信息
     comment: {
@@ -37,7 +52,32 @@ export default {
       required: true
     }
   },
-  methods: {}
+  methods: {
+    // 点赞或取消点赞事件
+    async onCommentLike () {
+      // loading 开启
+      this.commentLoading = true
+      try {
+        // 如果已经赞了则取消点赞
+        if (this.comment.is_liking) {
+          await deleteCommentLike(this.comment.com_id)
+          this.comment.like_count--
+        } else {
+          // 如果没有赞，则点赞
+          await addCommentLike(this.comment.com_id)
+          this.comment.like_count++
+        }
+        // 更新视图状态
+        this.comment.is_liking = !this.comment.is_liking
+        this.$toast('操作成功')
+      } catch (err) {
+        this.$toast('操作失败，请重试')
+        console.log(err)
+      }
+      // loading 关闭
+      this.commentLoading = false
+    }
+  }
 }
 </script>
 
@@ -91,7 +131,7 @@ export default {
     }
   }
   .liked {
-    background-color: orange;
+    color: orange;
   }
 }
 </style>

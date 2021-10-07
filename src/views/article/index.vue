@@ -50,15 +50,22 @@
           v-html="article.content"
         ></div>
         <van-divider>正文结束</van-divider>
-        <!------- 文章评论列表--------->
+        <!----------------------- 文章评论列表--------->
         <comment-list
-        :source="article.art_id"
-         @onload-success="totalCommentCount = $event.total_count"
-         />
-        <!-- /文章评论列表 --------->
+          :source="article.art_id"
+          :list="commentList"
+          @onload-success="totalCommentCount = $event.total_count"
+          @reply-click="onReplyClick"
+        />
+        <!------------------------- /文章评论列表 --------->
         <!-- 底部区域 -->
         <div class="article-bottom">
-          <van-button class="comment-btn" type="default" round size="small"
+          <van-button
+            class="comment-btn"
+            type="default"
+            round
+            size="small"
+            @click="isPostShow = true"
             >写评论</van-button
           >
           <van-icon name="comment-o" :badge="totalCommentCount" color="#777" />
@@ -80,16 +87,22 @@
           <van-icon name="share" color="#777777"></van-icon>
         </div>
         <!-- /底部区域 -->
+        <!-- --------------------发布文章评论--------------------------- --------->
+        <van-popup v-model="isPostShow" position="bottom">
+          <comment-post
+            :target="article.art_id"
+            @post-success="onPostSuccess"
+          />
+        </van-popup>
+        <!-- --------------------/发布文章评论 -------------------------------------->
       </div>
       <!-- /加载完成-文章详情 -->
-
       <!-- 加载失败：404 -->
       <div v-else-if="errStatus === 404" class="error-wrap">
         <van-icon name="failure" />
         <p class="text">该资源不存在或已删除！</p>
       </div>
       <!-- /加载失败：404 -->
-
       <!-- 加载失败：其它未知错误（例如网络原因或服务端异常） -->
       <div v-else class="error-wrap">
         <van-icon name="failure" />
@@ -100,6 +113,15 @@
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
     </div>
+    <!------------------------ 评论回复 ------------------------------>
+    <van-popup v-model="isReplyShow" position="bottom" style="height: 100%">
+      <comment-reply
+        v-if="isReplyShow"
+        :comment="currentComment"
+        @close="isReplyShow = false"
+      />
+    </van-popup>
+    <!------------------------ /评论回复 ------------------------------>
   </div>
 </template>
 
@@ -110,9 +132,18 @@ import FollowUser from '@/components/follow-user'
 import CollectArticle from '@/components/collect-article'
 import LikeArticle from '@/components/like-article'
 import CommentList from './components/comment-list'
+import CommentPost from './components/comment-post.vue'
+import CommentReply from './components/comment-reply.vue'
 export default {
   name: 'ArticleIndex',
-  components: { FollowUser, CollectArticle, LikeArticle, CommentList },
+  components: {
+    FollowUser,
+    CollectArticle,
+    LikeArticle,
+    CommentList,
+    CommentPost,
+    CommentReply
+  },
   props: {
     // 使用props获取动态路由的数据
     articleId: {
@@ -125,7 +156,11 @@ export default {
       loading: true, // 加载中的 loading 状态
       errStatus: 0, // 失败的状态码
       article: {}, // 2.定义变量存储文章详情
-      totalCommentCount: 0 // 文章评论总数量
+      totalCommentCount: 0, // 文章评论总数量
+      isPostShow: false, // 发布评论弹层控制
+      commentList: [], // 评论列表
+      isReplyShow: false,
+      currentComment: {} // 当前点击回复的评论项
     }
   },
   computed: {},
@@ -187,6 +222,27 @@ export default {
           })
         }
       })
+    },
+    // 发送评论
+    onPostSuccess (data) {
+      // 关闭弹出层
+      this.isPostShow = false
+      // 将发布内容显示到列表顶部
+      // todo...
+      console.log(data) // comment-post.vue 传递出来的数据
+      // 将发布内容显示到列表顶部
+      this.commentList.unshift(data.new_obj) // <=== 精华之句！！！
+      // 评论数量+1
+      this.totalCommentCount++
+    },
+    // 点击回复
+    onReplyClick (comment) {
+      // 存储起来
+      this.currentComment = comment
+
+      console.log(comment) // comment-item组件传递出来的数据
+      // 显示评论回复弹出层
+      this.isReplyShow = true
     }
   }
 }

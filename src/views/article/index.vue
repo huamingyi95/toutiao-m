@@ -144,6 +144,13 @@ export default {
     CommentPost,
     CommentReply
   },
+  // 给所有的后代组件提供数据
+  // 注意：不要滥用
+  provide: function () {
+    return {
+      articleId: this.articleId // 或者写成 this.$route.params.articleId  也可以
+    }
+  },
   props: {
     // 使用props获取动态路由的数据
     articleId: {

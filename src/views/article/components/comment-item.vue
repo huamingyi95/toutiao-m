@@ -42,7 +42,7 @@ export default {
   name: 'CommentItem',
   data () {
     return {
-      commentLoading: false // 是否点赞中
+      commentLoading: false // 是否点赞中状态
     }
   },
   props: {
